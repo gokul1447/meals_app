@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 import '../models/meal.dart';
 
 class MealDeatail extends StatelessWidget {
-  const MealDeatail({super.key, required this.meal});
+  const MealDeatail({super.key, required this.onToggle, required this.meal});
 
   final Meal meal;
+  final void Function(Meal meal) onToggle;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [IconButton(onPressed: () {onToggle(meal);}, icon: Icon(Icons.star))],
         title: Text(meal.title),
       ),
       body: SingleChildScrollView(
@@ -68,7 +70,7 @@ class MealDeatail extends StatelessWidget {
                   steps,
                   style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       color: Theme.of(context).colorScheme.onBackground),
-                  textAlign: TextAlign.start,
+                  textAlign: TextAlign.center,
                 ),
               ),
           ],
