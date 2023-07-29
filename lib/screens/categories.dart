@@ -8,23 +8,56 @@ import 'package:meals/widgets/category_grid_item.dart';
 
 import '../models/meal.dart';
 
-class CategoriesScreen extends StatelessWidget {
-  const CategoriesScreen({super.key,required this.onToggle});
-  final void Function(Meal meal) onToggle;
+class CategoriesScreen extends StatefulWidget {
+  const CategoriesScreen({super.key, required this.availableMeals});
 
-  void _selectCategory(BuildContext context, Category category){
+  final List<Meal> availableMeals;
 
-    final filteredMeal = dummyMeals.where((meal) => meal.categories.contains(category.id)).toList();
-    Navigator.push(context,MaterialPageRoute(builder: (context) => MealScreen(title: category.title, meals: filteredMeal,onToggle: onToggle),) );
+  @override
+  State<CategoriesScreen> createState() => _CategoriesScreenState();
+}
+
+class _CategoriesScreenState extends State<CategoriesScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animatinCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _animatinCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+      lowerBound: 0,
+      upperBound: 1,
+    );
+
+    _animatinCtrl.forward();
+  }
+
+  @override
+  void dispose() {
+ 
+    super.dispose();
+    _animatinCtrl.dispose();
+  }
+
+  void _selectCategory(BuildContext context, Category category) {
+    final filteredMeal = widget.availableMeals
+        .where((meal) => meal.categories.contains(category.id))
+        .toList();
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              MealScreen(title: category.title, meals: filteredMeal),
+        ));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pick your category'),
-      ),
-      body: GridView(
+    return AnimatedBuilder(
+      animation: _animatinCtrl,
+      child: GridView(
         padding: const EdgeInsets.all(24),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
@@ -35,11 +68,22 @@ class CategoriesScreen extends StatelessWidget {
         children: [
           // availableCategories.map((category) => CategoryGridItem(category: category)).toList()
           for (final category in availableCategories)
-            CategoryGridItem(category: category, onselect: () {
-              _selectCategory(context,category);
-              
-            },)
+            CategoryGridItem(
+              category: category,
+              onselect: () {
+                _selectCategory(context, category);
+              },
+            )
         ],
+      ),
+      builder: (context, child) => SlideTransition(
+        position: Tween(
+          begin: const Offset(0, .6),
+          end: const Offset(0, 0),
+        ).animate(
+          CurvedAnimation(parent: _animatinCtrl, curve: Curves.easeInOutCirc),
+        ),
+        child: child,
       ),
     );
   }

@@ -1,30 +1,60 @@
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meals/provider/favorite_provider.dart';
+import 'package:meals/provider/filter_provider.dart';
 
 import '../models/meal.dart';
 
-class MealDeatail extends StatelessWidget {
-  const MealDeatail({super.key, required this.onToggle, required this.meal});
+class MealDeatail extends ConsumerWidget {
+  const MealDeatail({super.key, required this.meal});
 
   final Meal meal;
-  final void Function(Meal meal) onToggle;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favmeal = ref.watch(mealFIlter);
+    final isFav = favmeal.contains(meal);
     return Scaffold(
       appBar: AppBar(
-        actions: [IconButton(onPressed: () {onToggle(meal);}, icon: Icon(Icons.star))],
+        actions: [
+          IconButton(
+              onPressed: () {
+                var isClick = ref.read(favProvider.notifier).toggleFav(meal);
+                ScaffoldMessenger.of(context).clearSnackBars();
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(isClick
+                      ? 'Meal added to Favorites'
+                      : 'Meal removed from favorites'),
+                  duration: const Duration(seconds: 2),
+                ));
+              },
+              icon: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, animation) {
+                  return RotationTransition(turns: animation, child: child);
+                },
+                child: Icon(
+                  isFav ? Icons.star : Icons.star_border,
+                  key: ValueKey(isFav),
+                ),
+              ))
+        ],
         title: Text(meal.title),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Image.network(
-              meal.imageUrl,
-              fit: BoxFit.cover,
-              height: 300,
-              width: double.infinity,
+            Hero(
+              tag: meal.id,
+              child: Image.network(
+                meal.imageUrl,
+                fit: BoxFit.cover,
+                height: 300,
+                width: double.infinity,
+              ),
             ),
-            SizedBox(
+           const SizedBox(
               height: 16,
             ),
             Text(
@@ -37,7 +67,7 @@ class MealDeatail extends StatelessWidget {
                   decorationThickness: 2.0,
                   decorationStyle: TextDecorationStyle.solid),
             ),
-            SizedBox(
+           const SizedBox(
               height: 16,
             ),
             for (final ingredient in meal.ingredients)
@@ -46,7 +76,7 @@ class MealDeatail extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     color: Theme.of(context).colorScheme.onBackground),
               ),
-            SizedBox(
+           const SizedBox(
               height: 16,
             ),
             Text(
@@ -59,7 +89,7 @@ class MealDeatail extends StatelessWidget {
                   decorationThickness: 2.0,
                   decorationStyle: TextDecorationStyle.solid),
             ),
-            SizedBox(
+           const SizedBox(
               height: 16,
             ),
             for (final steps in meal.steps)
